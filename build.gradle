@@ -1,0 +1,57 @@
+import org.springframework.boot.gradle.plugin.SpringBootPlugin
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
+}
+
+allprojects {
+    group = "${projectGroup}"
+    version = "${applicationVersion}"
+
+    java {
+        sourceCompatibility = JavaVersion.toVersion("${javaVersion}")
+        targetCompatibility = JavaVersion.toVersion("${javaVersion}")
+    }
+
+    repositories {
+        mavenCentral()
+    }
+}
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencies {
+        // platform: BOM versions are treated as recommendations and can be overridden by other versions in the dependency graph
+        // enforcedPlatform: BOM versions are enforced and will override any explicitly specified versions
+        implementation(platform(SpringBootPlugin.BOM_COORDINATES))
+
+        compileOnly 'org.projectlombok:lombok'
+        annotationProcessor 'org.projectlombok:lombok'
+        implementation 'org.slf4j:slf4j-api'
+        implementation 'ch.qos.logback:logback-classic'
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testImplementation 'org.assertj:assertj-core'
+    }
+
+    plugins.withId('java') {
+        plugins.apply('java-test-fixtures')
+    }
+
+    // Disable bootJar for subprojects. Enable booJar for runnable applications only.
+    bootJar { enabled = false }
+    jar { enabled = true }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.compilerArgs << '-parameters'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
