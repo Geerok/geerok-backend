@@ -1,0 +1,10 @@
+rootProject.name = 'geerok-backend'
+
+include(
+        'core',
+
+        'account:account-rest',
+        'account:account-app',
+        'account:account-domain',
+        'account:account-infra',
+)
