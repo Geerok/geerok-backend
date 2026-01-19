@@ -1,0 +1,16 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+  detect-changes:
+    uses: ./.github/workflows/detect-changes.yml
+  
+  test:
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has-changes == 'true'
+    uses: ./.github/workflows/test-unit.yml
+    with:
+      modules: ${{ needs.detect-changes.outputs.modules }}

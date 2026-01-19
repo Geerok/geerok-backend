@@ -1,0 +1,97 @@
+name: Detect Changed Modules
+
+on:
+  workflow_call:
+    outputs:
+      modules:
+        description: 'JSON array of changed modules'
+        value: ${{ jobs.detect.outputs.modules }}
+      has-changes:
+        description: 'Whether any modules changed'
+        value: ${{ jobs.detect.outputs.has-changes }}
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      modules: ${{ steps.set-matrix.outputs.modules }}
+      has-changes: ${{ steps.set-matrix.outputs.has-changes }}
+      test-all: ${{ steps.set-matrix.outputs.test-all }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Detect changed modules
+        id: set-matrix
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            BASE_SHA=${{ github.event.pull_request.base.sha }}
+          else
+            BASE_SHA=HEAD~1
+          fi
+          
+          echo "🔍 Comparing $BASE_SHA with HEAD"
+          
+          # 변경된 파일 목록
+          CHANGED_FILES=$(git diff --name-only $BASE_SHA HEAD)
+          echo "📝 Changed files:"
+          echo "$CHANGED_FILES"
+          echo ""
+          
+          # build.gradle 파일이 있는 디렉토리를 모듈로 인식
+          # 변경된 파일에서 해당 파일이 속한 모듈 찾기
+          echo "$CHANGED_FILES" | while read -r file; do
+            if [ -z "$file" ]; then
+              continue
+            fi
+          
+            # settings/** 디렉토리 제외
+            if [[ "$file" == settings/* ]]; then
+              echo "⏭️  Skipping settings file: $file"
+              continue
+            fi
+          
+            # 파일의 디렉토리 경로 추출
+            dir=$(dirname "$file")
+          
+            # 해당 디렉토리에서 상위로 올라가면서 build.gradle 찾기
+            current_dir="$dir"
+            while [ "$current_dir" != "." ] && [ "$current_dir" != "/" ]; do
+              # build.gradle 또는 build.gradle.kts 존재 확인
+              if [ -f "$current_dir/build.gradle" ] || [ -f "$current_dir/build.gradle.kts" ]; then
+                # 파일 경로를 Gradle 경로로 변환: common/common-app → :common:common-app
+                gradle_path=":${current_dir//\//:}"
+                echo "$gradle_path" >> /tmp/changed_modules.txt
+                break
+              fi
+          
+              # 상위 디렉토리로 이동
+              current_dir=$(dirname "$current_dir")
+            done
+          done
+          
+          echo "🎯 Changed modules:"
+          echo "$CHANGED_MODULES"
+          
+          if [ -f /tmp/changed_modules.txt ]; then
+            CHANGED_MODULES_UNIQUE=$(cat /tmp/changed_modules.txt | sort -u)
+          
+            echo "🎯 Changed modules (Gradle format):"
+            echo "$CHANGED_MODULES_UNIQUE"
+          
+            # JSON 배열로 변환
+            MODULES_JSON=$(echo "$CHANGED_MODULES_UNIQUE" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+            echo "modules=$MODULES_JSON" >> $GITHUB_OUTPUT
+            echo "✅ Changed modules JSON: $MODULES_JSON"
+          else
+            echo "ℹ️  No module changes detected"
+            echo "has-changes=false" >> $GITHUB_OUTPUT
+            echo "modules=[]" >> $GITHUB_OUTPUT
+          fi
+          
+          # 임시 파일 정리
+          rm -f /tmp/changed_modules.txt
