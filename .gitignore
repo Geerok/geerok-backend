@@ -39,6 +39,7 @@ out/
 ### Claude Code ###
 tmpclaude*
 claude.md
+.claude
 
 ### Project Environments ###
 jwt-config.yml
