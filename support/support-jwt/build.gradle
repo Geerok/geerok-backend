@@ -1,0 +1,20 @@
+dependencies {
+    implementation(project(":core"))
+
+    implementation 'org.springframework.security:spring-security-core'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Json web token
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
+    runtimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
+    compileOnly group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
+
+    // Test dependencies
+    testRuntimeOnly group: 'io.jsonwebtoken', name: 'jjwt-impl', version: '0.11.2'
+    testRuntimeOnly group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: '0.11.2'
+    testCompileOnly group: 'io.jsonwebtoken', name: 'jjwt-api', version: '0.11.2'
+
+    // TestFixtures dependencies
+    testFixturesImplementation(project(":core"))
+    testFixturesImplementation 'org.springframework.boot:spring-boot-starter-web'
+}
