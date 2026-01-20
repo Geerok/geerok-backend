@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Claude Code ###
+tmpclaude*
+claude.md
+
+### Project Environments ###
+jwt-config.yml
