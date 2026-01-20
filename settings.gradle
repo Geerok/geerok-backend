@@ -6,10 +6,10 @@ include(
         'boot:api-server',
 
         'support:support-jwt',
-        'support:support-api',
-
-        'account:account-rest',
-        'account:account-app',
-        'account:account-domain',
-        'account:account-infra',
+//        'support:support-api',
+//
+//        'account:account-rest',
+//        'account:account-app',
+//        'account:account-domain',
+//        'account:account-infra',
 )
