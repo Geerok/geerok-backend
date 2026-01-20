@@ -3,8 +3,13 @@ rootProject.name = 'geerok-backend'
 include(
         'core',
 
-        'account:account-rest',
-        'account:account-app',
-        'account:account-domain',
-        'account:account-infra',
+//        'boot:api-server',
+
+        'support:support-jwt',
+//        'support:support-api',
+//
+//        'account:account-rest',
+//        'account:account-app',
+//        'account:account-domain',
+//        'account:account-infra',
 )
